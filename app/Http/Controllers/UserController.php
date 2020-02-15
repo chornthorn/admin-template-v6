@@ -302,7 +302,7 @@ class UserController extends Controller
             $user_profile = DB::table('role_user')
                 ->join('users', 'users.id', '=', 'role_user.user_id')
                 ->join('roles', 'roles.id', '=', 'role_user.role_id')
-                ->select('users.name', 'users.email', 'users.created_at', 'users.updated_at',
+                ->select('users.name', 'users.email','users.about', 'users.created_at', 'users.updated_at',
                     'roles.id', 'roles.name AS role_name', 'roles.description')
                 ->where('users.id', $id)->get();
 
@@ -310,26 +310,47 @@ class UserController extends Controller
         }
     }
 
+    public function updateAbout(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required|string',
+            'about' => 'required|string',
+        ],
+        [
+            'name.required' => 'Name field is required',
+            'about.required' => 'About field is required',
+            'about.string' => 'About field is required about string',
+        ]);
+        $user = User::find(Auth::user()->id);
+        $user->about = $request->about;
+        $user->name = $request->name;
+        $user->update();
+
+        $notification = [
+            'message' => 'Update profile successfully!',
+            'alert-type' => 'success'
+        ];
+
+        return redirect()->back()->with($notification);
+    }
     public function changePassword(Request $request)
     {
-        $this->validate($request,[
+        $this->validate($request, [
             'password' => 'required|same:password',
             'password_confirmation' => 'required|same:password',
             'current_password' => 'required'
         ],
-        [
-            'password.required' => 'Password field is required',
-            'password_confirmation.required' => 'Password confirmation field is required',
-            'password_confirmation.same' => 'Field should be same as New Password',
-            'current_password.required' => 'Current password field is required'
-        ]);
-        if(Auth::Check())
-        {
-            if(Hash::check($request->current_password,Auth::User()->password))
-            {
-                $user = User::find(Auth::user()->id)->update(["password"=> bcrypt($request->password)]);
-            }
-            else{
+            [
+                'password.required' => 'Password field is required',
+                'password_confirmation.required' => 'Password confirmation field is required',
+                'password_confirmation.same' => 'Field should be same as New Password',
+                'current_password.required' => 'Current password field is required'
+            ]);
+
+        if (Auth::Check()) {
+            if (Hash::check($request->current_password, Auth::User()->password)) {
+                User::find(Auth::user()->id)->update(["password" => bcrypt($request->password)]);
+            } else {
                 $notification = [
                     'message' => 'Incorrect Details !',
                     'alert-type' => 'error'

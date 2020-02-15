@@ -4,9 +4,6 @@
 
 @push('css')
     <!-- include css style here if css file run only this page -->
-    <!-- iCheck -->
-    <link href="{{ asset('plugins/iCheck/all.css')}}" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('plugins/sweetalert2/dist/sweetalert2.min.css') }}">
 @endpush
 
 @section('content')
@@ -39,10 +36,10 @@
 
                         <ul class="list-group list-group-unbordered">
                             <li class="list-group-item">
-                                <b>Register Date:</b> <a class="pull-right">{{ $profile->created_at }}</a>
+                                <b>Register Date:</b> <a class="pull-right">{{ Carbon\Carbon::parse($profile->created_at)->format('M j, Y') }}</a>
                             </li>
                             <li class="list-group-item">
-                                <b>Update Date:</b> <a class="pull-right">{{ $profile->updated_at }}</a>
+                                <b>Update Date:</b> <a class="pull-right">{{ Carbon\Carbon::parse($profile->updated_at)->format('M j, Y') }}</a>
                             </li>
                         </ul>
 
@@ -62,12 +59,13 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane active" id="settings">
-                            <form class="form-horizontal">
+                            <form class="form-horizontal" method="post" action="{{ route('user.change.about') }}">
+                                @csrf
                                 <div class="form-group">
                                     <label for="inputName" class="col-sm-2 control-label">Name</label>
 
                                     <div class="col-sm-10">
-                                        <input value="{{ $profile->name }}" type="text" class="form-control" id="inputName" placeholder="Name">
+                                        <input name="name" value="{{ $profile->name }}" type="text" class="form-control" id="inputName" placeholder="Name">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -88,18 +86,18 @@
                                     <label for="inputExperience" class="col-sm-2 control-label">About</label>
 
                                     <div class="col-sm-10">
-                                        <textarea class="form-control" id="inputExperience" placeholder="Experience"></textarea>
+                                        <textarea name="about" class="form-control" id="inputExperience" placeholder="Write about you here!"> {{ $profile->about }}</textarea>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-10">
-                                        <button type="submit" class="btn btn-danger">Save</button>
+                                        <button type="submit" class="btn btn-success">Update Profile</button>
                                     </div>
                                 </div>
                             </form>
                         </div>
                         <div class="tab-pane" id="change_password">
-                            <form class="form-horizontal" action="{{ route('user.change.password') }}" method="post">
+                            <form class="form-horizontal" action="{{ route('user.update.password') }}" method="post">
                                 @csrf
                                 <div class="form-group">
                                     <label for="inputName" class="col-sm-2 control-label">Current Password</label>
@@ -146,37 +144,4 @@
 
 @push('js')
     <!-- include Javascript here if js file run only this page -->
-    <script src="{{ asset('plugins/iCheck/icheck.min.js')}}" type="text/javascript"></script>
-    <script src="{{ asset('plugins/sweetalert2/dist/sweetalert2.min.js') }}"></script>
-    <script>
-        function deleteRole(id) {
-            const swalWithBootstrapButtons = Swal.mixin({
-                customClass: {
-                    confirmButton: 'btn btn-success',
-                    cancelButton: 'btn btn-danger'
-                },
-                buttonsStyling: false
-            })
-
-            swalWithBootstrapButtons.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'No, cancel!',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.value) {
-                    event.preventDefault();
-                    document.getElementById('delete-form-'+id).submit();
-                } else if (
-                    /* Read more about handling dismissals below */
-                    result.dismiss === Swal.DismissReason.cancel
-                ) {
-                    //
-                }
-            })
-        }
-    </script>
 @endpush

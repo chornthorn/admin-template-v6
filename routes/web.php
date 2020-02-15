@@ -66,7 +66,8 @@ Route::group(['middleware' => 'auth'], function () {
      */
     Route::resource('/user', 'UserController');
     Route::get('user/profile/{id}','UserController@profile')->name('user.profile');
-    Route::post('password/change', 'UserController@changePassword')->name('user.change.password');
+    Route::post('password/change', 'UserController@changePassword')->name('user.update.password');
+    Route::post('profile/data', 'UserController@updateAbout')->name('user.change.about');
     /*
      * Route Category
      */
