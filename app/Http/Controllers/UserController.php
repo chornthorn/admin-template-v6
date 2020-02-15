@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
@@ -284,4 +285,66 @@ class UserController extends Controller
             return redirect()->back()->with($notification);
         }
     }
+
+    public function profile(Request $request, $id)
+    {
+        if (Auth::user()->id != $id) {
+
+            $notification = [
+                'message' => 'You can\'t access to another profile!',
+                'alert-type' => 'error'
+            ];
+
+            return redirect()->back()->with($notification);
+
+        } else {
+
+            $user_profile = DB::table('role_user')
+                ->join('users', 'users.id', '=', 'role_user.user_id')
+                ->join('roles', 'roles.id', '=', 'role_user.role_id')
+                ->select('users.name', 'users.email', 'users.created_at', 'users.updated_at',
+                    'roles.id', 'roles.name AS role_name', 'roles.description')
+                ->where('users.id', $id)->get();
+
+            return view('users.profile', compact('user_profile'));
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        $this->validate($request,[
+            'password' => 'required|same:password',
+            'password_confirmation' => 'required|same:password',
+            'current_password' => 'required'
+        ],
+        [
+            'password.required' => 'Password field is required',
+            'password_confirmation.required' => 'Password confirmation field is required',
+            'password_confirmation.same' => 'Field should be same as New Password',
+            'current_password.required' => 'Current password field is required'
+        ]);
+        if(Auth::Check())
+        {
+            if(Hash::check($request->current_password,Auth::User()->password))
+            {
+                $user = User::find(Auth::user()->id)->update(["password"=> bcrypt($request->password)]);
+            }
+            else{
+                $notification = [
+                    'message' => 'Incorrect Details !',
+                    'alert-type' => 'error'
+                ];
+
+                return redirect()->back()->with($notification);
+            }
+        }
+
+        $notification = [
+            'message' => 'Password changed successfully !',
+            'alert-type' => 'success'
+        ];
+
+        return redirect()->route('user.index')->with($notification);
+    }
+
 }
