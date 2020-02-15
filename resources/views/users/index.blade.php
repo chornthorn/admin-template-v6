@@ -5,7 +5,7 @@
 @push('css')
     <!-- include css style here if css file run only this page -->
     <!-- iCheck -->
-    <link href="{{ asset('plugins/iCheck/all.css')}}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('plugins/iCheck/all.css')}}" rel="stylesheet" type="text/css"/>
     <link rel="stylesheet" href="{{ asset('plugins/sweetalert2/dist/sweetalert2.min.css') }}">
 @endpush
 
@@ -27,60 +27,71 @@
             <div class="box-header with-border">
                 <div class="box-title">
                     @can('user.create')
-                    <a href="{{ route('user.create') }}"><span class="btn btn-success">Add New</span></a>
+                        <a href="{{ route('user.create') }}"><span class="btn btn-success">Add New</span></a>
                     @endcan
                 </div>
                 <div class="box-tools pull-right">
                     <div class="box-tools pull-right mt-4">
-                        <div class="input-group input-group-md" style="width: 300px">
-                            <input type="text" class="form-control" placeholder="Search...">
-                            <span class="input-group-btn">
-                                <button class="btn btn-info btn-flat" type="button">Go</button>
+                        <form action="{{ route('user.index') }}">
+                            <div class="input-group input-group-md" style="width: 300px">
+                                <input type="text" name="search" class="form-control" placeholder="Search..."
+                                       value="{{ isset($search) ? $search : '' }}">
+                                <span class="input-group-btn">
+                                <button class="btn btn-info btn-flat" type="submit">Go</button>
                             </span>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
             <div class="box-body">
                 <div class="table-responsive">
-                <table class="table table-hover table-responsive text-nowrap">
-                    <thead>
-                    <tr>
-                        <th class="text-center" width="20">ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        @can('user.update')
-                        <th class="text-center" width="20">Edit</th>
-                        @endcan
-                        @can('user.delete')
-                        <th class="text-center" width="20">Delete</th>
-                        @endcan
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($users as $user)
-                    <tr>
-                        <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
-                        @can('user.update')
-                            <td class="text-center">
-                                <a href="{{ route('user.edit',$user->id) }}" class="btn btn-sm btn-success"><i class="fa fa-edit"></i></a>
-                            </td>
-                        @endcan
-                        @can('user.delete')
-                            <td class="text-center" width="15">
-                                <button class="btn btn-sm btn-danger" onclick="deleteRole('{{$user->id}}')"><span><i class="fa fa-trash"></i></span></button>
-                                <form id="delete-form-{{$user->id}}" action="{{ route('user.destroy',$user->id) }}" method="post" style="display: none">
-                                    @csrf
-                                    @method('DELETE')
-                                </form>
-                            </td>
-                        @endcan
-                    </tr>
-                    @endforeach
-                    </tbody>
-                </table>
+                    <table class="table table-hover table-responsive text-nowrap">
+                        <thead>
+                        <tr>
+                            <th class="text-center" width="20">ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            @can('user.update')
+                                <th class="text-center" width="20">Edit</th>
+                            @endcan
+                            @can('user.delete')
+                                <th class="text-center" width="20">Delete</th>
+                            @endcan
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @if($users->count() < 1)
+                            <td>No User</td>
+                        @else
+                            @foreach($users as $user)
+                                <tr>
+                                    <td>{{ $user->id }}</td>
+                                    <td>{{ $user->name }}</td>
+                                    <td>{{ $user->email }}</td>
+                                    @can('user.update')
+                                        <td class="text-center">
+                                            <a href="{{ route('user.edit',$user->id) }}" class="btn btn-sm btn-success"><i
+                                                    class="fa fa-edit"></i></a>
+                                        </td>
+                                    @endcan
+                                    @can('user.delete')
+                                        <td class="text-center" width="15">
+                                            <button class="btn btn-sm btn-danger" onclick="deleteRole('{{$user->id}}')">
+                                                <span><i class="fa fa-trash"></i></span></button>
+                                            <form id="delete-form-{{$user->id}}"
+                                                  action="{{ route('user.destroy',$user->id) }}" method="post"
+                                                  style="display: none">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        </td>
+                                    @endcan
+                                </tr>
+                            @endforeach
+                        @endif
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <div class="box-footer with-border">
@@ -121,7 +132,7 @@
             }).then((result) => {
                 if (result.value) {
                     event.preventDefault();
-                    document.getElementById('delete-form-'+id).submit();
+                    document.getElementById('delete-form-' + id).submit();
                 } else if (
                     /* Read more about handling dismissals below */
                     result.dismiss === Swal.DismissReason.cancel

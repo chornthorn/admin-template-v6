@@ -21,4 +21,8 @@ class Role extends Model
     {
         return $this->belongsToMany(User::class);
     }
+    public function scopeSearch($query,$search){
+        return $query->where('name','like','%'.$search.'%')
+            ->orWhere('description','like','%'.$search.'%');
+    }
 }

@@ -7,6 +7,7 @@ use App\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
@@ -16,12 +17,14 @@ class UserController extends Controller
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->can('user.view')) {
 
-            $users = User::paginate(7);
-            return view('users.index', compact('users'));
+            $search = $request->input('search');
+            $users = User::search($search)->paginate(7);
+            return view('users.index', compact('users', 'search'));
+
         } else {
 
             $notification = [
@@ -79,7 +82,7 @@ class UserController extends Controller
                 'password' => bcrypt('12345678')
             ]);*/
 
-            $random = rand(0, 5);
+            $random = 12345678;
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
@@ -141,12 +144,15 @@ class UserController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param int $id
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\View\View
      */
     public function edit($id)
     {
         if (Auth::user()->can('user.update')) {
 
+            $roles = Role::all();
+            $user = User::find($id);
+            return view('users.edit', compact('roles', 'user'));
 
         } else {
 
@@ -169,8 +175,46 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         if (Auth::user()->can('user.update')) {
+            $current_user_logged = Auth::user()->id;
+            $is_superAdmin = 1;
+            if ($current_user_logged == $id) {
+                ;
+                $notification = [
+                    'message' => 'Can\'t update current user logged now!',
+                    'alert-type' => 'error'
+                ];
 
+                return redirect()->back()->with($notification);
+            } elseif ($is_superAdmin == $id) {
+                $notification = [
+                    'message' => 'Can\'t update super Administration!',
+                    'alert-type' => 'error'
+                ];
 
+                return redirect()->back()->with($notification);
+            } else {
+
+                $this->validate($request, [
+                    'name' => 'required|max:50',
+                    'email' => 'required|email|unique:users,email,' . $id,
+                    'role' => 'required'
+
+                ]);
+
+                $user = User::find($id);
+                $user->name = $request->name;
+                $user->email = $request->email;
+                $user->password = '12345678';
+                $user->save();
+
+                $user->roles()->sync($request->input('role'));
+
+                $notification = [
+                    'message' => 'The User Update successfully!',
+                    'alert-type' => 'success'
+                ];
+                return redirect()->route('user.index')->with($notification);
+            }
         } else {
 
             $notification = [
@@ -192,15 +236,35 @@ class UserController extends Controller
     {
         try {
             if (Auth::user()->can('user.delete')) {
+                $current_user_logged = Auth::user()->id;
+                $is_superAdmin = 1;
+                if ($current_user_logged == $id) {
+                    ;
+                    $notification = [
+                        'message' => 'Can\'t delete current user logged now!',
+                        'alert-type' => 'error'
+                    ];
 
-                User::where('id', $id)->delete();
+                    return redirect()->back()->with($notification);
+                } elseif ($is_superAdmin == $id) {
 
-                $notification = [
-                    'message' => 'The User Delete successfully!',
-                    'alert-type' => 'success'
-                ];
+                    $notification = [
+                        'message' => 'Can\'t delete super Administration!',
+                        'alert-type' => 'error'
+                    ];
 
-                return redirect()->back()->with($notification);
+                    return redirect()->back()->with($notification);
+                } else {
+
+                    $user = User::find($id);
+                    $user->delete();
+                    $notification = [
+                        'message' => 'The User Delete successfully!',
+                        'alert-type' => 'success'
+                    ];
+
+                    return redirect()->back()->with($notification);
+                }
 
             } else {
 

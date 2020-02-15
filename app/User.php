@@ -6,6 +6,10 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @method static find(int $id)
+ * @method static where(string $string, int $id)
+ */
 class User extends Authenticatable
 {
     use Notifiable;
@@ -40,5 +44,9 @@ class User extends Authenticatable
     public function roles()
     {
         return $this->belongsToMany(Role::class);
+    }
+    public function scopeSearch($query,$search){
+        return $query->where('name','like','%'.$search.'%')
+            ->orWhere('email','like','%'.$search.'%');
     }
 }

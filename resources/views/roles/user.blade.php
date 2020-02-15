@@ -34,13 +34,17 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach($roleUsers as $roleUser)
-                        <tr>
-                            <td>{{ $roleUser->id }}</td>
-                            <td>{{ $roleUser->name }}</td>
-                            <td>{{ $roleUser->email }}</td>
-                        </tr>
-                    @endforeach
+                    @if($roleUsers->count() < 1)
+                        <td colspan="3" class="text-center">No User</td>
+                    @else
+                        @foreach($roleUsers as $roleUser)
+                            <tr>
+                                <td>{{ $roleUser->id }}</td>
+                                <td>{{ $roleUser->name }}</td>
+                                <td>{{ $roleUser->email }}</td>
+                            </tr>
+                        @endforeach
+                    @endif
                     </tbody>
                 </table>
             </div>

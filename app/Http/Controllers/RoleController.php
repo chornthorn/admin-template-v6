@@ -30,15 +30,16 @@ class RoleController extends Controller
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
      */
 
-    public function index()
+    public function index(Request $request)
     {
-        if(Auth::user()->can('role.view')) {
+        if (Auth::user()->can('role.view')) {
 
-            $roles = Role::paginate(7);
+            $search = $request->input('search');
+            $roles = Role::search($search)->paginate(7);
 
-            return view('roles.index',compact('roles'));
+            return view('roles.index', compact('roles', 'search'));
 
-        }else {
+        } else {
 
             $notification = [
                 'message' => __('words.not_permission'),
@@ -58,12 +59,12 @@ class RoleController extends Controller
      */
     public function create()
     {
-        if(Auth::user()->can('role.create')) {
+        if (Auth::user()->can('role.create')) {
 
             $permissions = Permission::all();
-            return view('roles.create',compact('permissions'));
+            return view('roles.create', compact('permissions'));
 
-        }else {
+        } else {
 
             $notification = [
                 'message' => __('words.not_permission'),
@@ -106,7 +107,7 @@ class RoleController extends Controller
             ];
 
             return redirect()->route('role.index')->with($notification);
-        }else{
+        } else {
 
             $notification = [
                 'message' => __('words.not_permission'),
@@ -120,7 +121,7 @@ class RoleController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -131,7 +132,7 @@ class RoleController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
      */
     public function edit($id)
@@ -140,7 +141,7 @@ class RoleController extends Controller
             $role = Role::find($id);
             $permissions = Permission::all();
             return view('roles.edit', compact('role', 'permissions'));
-        }else{
+        } else {
             $notification = [
                 'message' => __('words.not_permission'),
                 'alert-type' => 'warning'
@@ -161,22 +162,33 @@ class RoleController extends Controller
     public function update(Request $request, $id)
     {
         if (Auth::user()->can('role.update')) {
-            $this->validate($request, [
-                'name' => 'required'
-            ]);
-            $role = Role::find($id);
-            $role->name = $request->name;
-            $role->description = $request->description;
-            $role->save();
-            $role->permissions()->sync($request->input('permission'));
+            $current_user_logged = Auth::user()->id;
+            if ($current_user_logged == $id) {
+                ;
+                $notification = [
+                    'message' => 'Can\'t update role by itself!',
+                    'alert-type' => 'error'
+                ];
 
-            $notification = [
-                'message' => 'The Role Update successfully!',
-                'alert-type' => 'success'
-            ];
+                return redirect()->back()->with($notification);
+            } else {
+                $this->validate($request, [
+                    'name' => 'required'
+                ]);
+                $role = Role::find($id);
+                $role->name = $request->name;
+                $role->description = $request->description;
+                $role->save();
+                $role->permissions()->sync($request->input('permission'));
 
-            return redirect(route('role.index'))->with($notification);
-        }else{
+                $notification = [
+                    'message' => 'The Role Update successfully!',
+                    'alert-type' => 'success'
+                ];
+
+                return redirect(route('role.index'))->with($notification);
+            }
+        } else {
             $notification = [
                 'message' => __('words.not_permission'),
                 'alert-type' => 'warning'
@@ -189,22 +201,34 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy($id)
     {
         try {
             if (Auth::user()->can('role.delete')) {
-                Role::where('id', $id)->delete();
+                $current_user_logged = Auth::user()->id;
+                if ($current_user_logged == $id) {
+                    ;
+                    $notification = [
+                        'message' => 'Can\'t delete current user logged now!',
+                        'alert-type' => 'error'
+                    ];
 
-                $notification = [
-                    'message' => 'The Role Delete successfully!',
-                    'alert-type' => 'success'
-                ];
+                    return redirect()->back()->with($notification);
+                } else {
+                    Role::where('id', $id)->delete();
 
-                return redirect()->back()->with($notification);
-            }else{
+                    $notification = [
+                        'message' => 'The Role Delete successfully!',
+                        'alert-type' => 'success'
+                    ];
+
+                    return redirect()->back()->with($notification);
+                }
+
+            } else {
                 $notification = [
                     'message' => __('words.not_permission'),
                     'alert-type' => 'warning'
@@ -212,6 +236,7 @@ class RoleController extends Controller
 
                 return redirect()->back()->with($notification);
             }
+
         } catch (QueryException $e) {
             $notification = [
                 'message' => 'You are can\'t delete it! Now!',
@@ -232,13 +257,13 @@ class RoleController extends Controller
             $role = Role::find($id);
 
             $roleUsers = DB::table('role_user')
-                ->join('users','users.id','=','role_user.user_id')
+                ->join('users', 'users.id', '=', 'role_user.user_id')
                 ->select('users.*')
-                ->where('role_id',$id)
+                ->where('role_id', $id)
                 ->get();
 
             return view('roles.user', compact('role', 'roleUsers'));
-        }else{
+        } else {
             $notification = [
                 'message' => __('words.not_permission'),
                 'alert-type' => 'warning'
@@ -247,6 +272,7 @@ class RoleController extends Controller
             return redirect()->back()->with($notification);
         }
     }
+
     public function export()
     {
         return Excel::download(new RolesExport, 'Role and Permission.xlsx');

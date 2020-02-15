@@ -5,7 +5,7 @@
 @push('css')
     <!-- include css style here if css file run only this page -->
     <!-- iCheck -->
-    <link href="{{ asset('plugins/iCheck/all.css')}}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('plugins/iCheck/all.css')}}" rel="stylesheet" type="text/css"/>
     <link rel="stylesheet" href="{{ asset('plugins/sweetalert2/dist/sweetalert2.min.css') }}">
 @endpush
 
@@ -27,22 +27,25 @@
             <div class="box-header with-border">
                 <div class="box-title">
                     @can('role.create')
-                    <a href="{{ route('role.create') }}"><span class="btn btn-success">Add New</span></a>
+                        <a href="{{ route('role.create') }}"><span class="btn btn-success">Add New</span></a>
                     @endcan
-                        <div class="box-title">
-                            @can('role.create')
-                                <a id="export"><span class="btn btn-warning">Export</span></a>
-                            @endcan
-                        </div>
+                    <div class="box-title">
+                        @can('role.create')
+                            <a id="export"><span class="btn btn-warning">Export</span></a>
+                        @endcan
+                    </div>
                 </div>
                 <div class="box-tools pull-right">
                     <div class="box-tools pull-right mt-4">
-                        <div class="input-group input-group-md" style="width: 300px">
-                            <input type="text" class="form-control" placeholder="Search...">
-                            <span class="input-group-btn">
-                                <button class="btn btn-info btn-flat" type="button">Go</button>
+                        <form action="{{ route('role.index') }}">
+                            <div class="input-group input-group-md" style="width: 300px">
+                                <input type="text" name="search" class="form-control" placeholder="Search..."
+                                       value="{{ isset($search) ? $search : '' }}">
+                                <span class="input-group-btn">
+                                <button class="btn btn-info btn-flat" type="submit">Go</button>
                             </span>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -70,17 +73,22 @@
                                 <td>{{ $role->name }}</td>
                                 <td>{{ $role->description }}</td>
                                 <td class="text-center">
-                                    <a href="{{ route('role.users',$role->id) }}" class="btn btn-sm btn-primary"><i class="fa fa-eye"></i></a>
+                                    <a href="{{ route('role.users',$role->id) }}" class="btn btn-sm btn-primary"><i
+                                            class="fa fa-eye"></i></a>
                                 </td>
                                 @can('role.update')
                                     <td class="text-center">
-                                        <a href="{{ route('role.edit',$role->id) }}" class="btn btn-sm btn-success"><i class="fa fa-edit"></i></a>
+                                        <a href="{{ route('role.edit',$role->id) }}" class="btn btn-sm btn-success"><i
+                                                class="fa fa-edit"></i></a>
                                     </td>
                                 @endcan
                                 @can('role.delete')
                                     <td class="text-center" width="15">
-                                        <button class="btn btn-sm btn-danger" onclick="deleteRole('{{$role->id}}')"><span><i class="fa fa-trash"></i></span></button>
-                                        <form id="delete-form-{{$role->id}}" action="{{ route('role.destroy',$role->id) }}" method="post" style="display: none">
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRole('{{$role->id}}')">
+                                            <span><i class="fa fa-trash"></i></span></button>
+                                        <form id="delete-form-{{$role->id}}"
+                                              action="{{ route('role.destroy',$role->id) }}" method="post"
+                                              style="display: none">
                                             @csrf
                                             @method('DELETE')
                                         </form>
@@ -108,7 +116,7 @@
     <script src="{{ asset('plugins/iCheck/icheck.min.js')}}" type="text/javascript"></script>
     <script src="{{ asset('plugins/sweetalert2/dist/sweetalert2.min.js') }}"></script>
     <script>
-        $('#export').click('on',function () {
+        $('#export').click('on', function () {
             const swalWithBootstrapButtons = Swal.mixin({
                 customClass: {
                     confirmButton: 'btn btn-success',
@@ -138,6 +146,7 @@
                 }
             })
         })
+
         function deleteRole(id) {
             const swalWithBootstrapButtons = Swal.mixin({
                 customClass: {
@@ -160,7 +169,7 @@
             }).then((result) => {
                 if (result.value) {
                     event.preventDefault();
-                    document.getElementById('delete-form-'+id).submit();
+                    document.getElementById('delete-form-' + id).submit();
                 } else if (
                     /* Read more about handling dismissals below */
                     result.dismiss === Swal.DismissReason.cancel
