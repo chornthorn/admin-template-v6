@@ -56,7 +56,8 @@ Available options and their defaults:
 
 
 ### Coming Soon!!!
-###Package use in this project:
+
+### Package use in this project:
 
  `AdminLTE V2` 
     
