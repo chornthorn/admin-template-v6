@@ -1,1 +1,3 @@
-## Free Admin Template Laravel
+## Free Admin Template with authentication Laravel
+
+# User Guide Coming Soon!
